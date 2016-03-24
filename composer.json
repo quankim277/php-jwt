@@ -1,5 +1,5 @@
 {
-    "name": "QuanKim/PhpJwt",
+    "name": "quankim/php-jwt",
     "description": "QuanKim/PhpJwt plugin for CakePHP",
     "type": "cakephp-plugin",
     "require": {
