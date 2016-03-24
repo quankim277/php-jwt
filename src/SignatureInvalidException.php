@@ -1,5 +1,5 @@
 <?php
-namespace QuanKim\PhpJWT;
+namespace QuanKim\PhpJwt;
 
 class SignatureInvalidException extends \UnexpectedValueException
 {

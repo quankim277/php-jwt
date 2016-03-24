@@ -1,6 +1,6 @@
 <?php
 
-namespace QuanKim\PhpJWT;
+namespace QuanKim\PhpJwt;
 use \DomainException;
 use \InvalidArgumentException;
 use \UnexpectedValueException;

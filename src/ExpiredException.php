@@ -1,5 +1,5 @@
 <?php
-namespace QuanKim\PhpJWT;
+namespace QuanKim\PhpJwt;
 
 class ExpiredException extends \UnexpectedValueException
 {
