@@ -1,11 +1,12 @@
 <?php
 
 namespace QuanKim\PhpJwt;
+use Cake\ORM\TableRegistry;
 use \DomainException;
 use \InvalidArgumentException;
 use \UnexpectedValueException;
 use \DateTime;
-
+use Cake\Utility\Security;
 /**
  * JSON Web Token implementation, based on this spec:
  * http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-06
@@ -113,10 +114,48 @@ class JWT
                 'Cannot handle token prior to ' . date(DateTime::ISO8601, $payload->iat)
             );
         }
-
+        // Check if refresh token return access t
+        if (isset($payload->refresh) && $payload->refresh) {
+            header('Content-Type:application/json');
+            $table = TableRegistry::get('AuthToken');
+            $authToken = $table->find('all')->where(['user_id'=>$payload->sub,'refresh_token'=>$jwt])->first();
+            if ($authToken) {
+                $access_token = JWT::encode([
+                    'sub' => $authToken['user_id'],
+                    'exp' =>  time() + 3600
+                ],Security::salt());
+                $refresh_token = JWT::encode([
+                    'sub' => $authToken['user_id'],
+                    'exp' =>  time() + 3600,
+                    'refresh'=>true
+                ],Security::salt());
+                $authToken->access_token = $access_token;
+                $authToken->refresh_token = $refresh_token;
+                $table->save($authToken);
+                echo json_encode([
+                    'status'=>'success',
+                    'data'=>[
+                        'access_token'=>$access_token,
+                        'refresh_token'=>$refresh_token
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    'status'=>'failed',
+                    'messsage'=>'Session expired'
+                ]);
+            }
+            exit();
+        }
         // Check if this token has expired.
         if (isset($payload->exp) && (time() - self::$leeway) >= $payload->exp) {
-            throw new ExpiredException('Expired token');
+            //throw new ExpiredException('Expired token');
+            header('Content-Type:application/json');
+            echo json_encode([
+                'status'=>'failed',
+                'expired'=>true
+            ]);
+            exit();
         }
 
         return $payload;
