@@ -1,6 +1,7 @@
 <?php
 
 namespace QuanKim\PhpJwt;
+use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
 use \DomainException;
 use \InvalidArgumentException;
@@ -120,13 +121,16 @@ class JWT
             $table = TableRegistry::get('AuthToken');
             $authToken = $table->find('all')->where(['user_id'=>$payload->sub,'refresh_token'=>$jwt])->first();
             if ($authToken) {
+                if (isset($a)){
+
+                }
+                $expire =  (!is_null(Configure::read('AuthToken.expire'))) ? Configure::read('AuthToken.expire') : 3600;
                 $access_token = JWT::encode([
                     'sub' => $authToken['user_id'],
-                    'exp' =>  time() + 3600
+                    'exp' =>  time() + $expire
                 ],Security::salt());
                 $refresh_token = JWT::encode([
                     'sub' => $authToken['user_id'],
-                    'exp' =>  time() + 3600,
                     'refresh'=>true
                 ],Security::salt());
                 $authToken->access_token = $access_token;
