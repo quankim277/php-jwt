@@ -116,14 +116,11 @@ class JWT
             );
         }
         // Check if refresh token return access t
-        if (isset($payload->refresh) && $payload->refresh) {
+        if (isset($payload->ref)) {
             header('Content-Type:application/json');
             $table = TableRegistry::get('AuthToken');
             $authToken = $table->find('all')->where(['user_id'=>$payload->sub,'refresh_token'=>$jwt])->first();
             if ($authToken) {
-                if (isset($a)){
-
-                }
                 $expire =  (!is_null(Configure::read('AuthToken.expire'))) ? Configure::read('AuthToken.expire') : 3600;
                 $access_token = JWT::encode([
                     'sub' => $authToken['user_id'],
@@ -131,13 +128,13 @@ class JWT
                 ],Security::salt());
                 $refresh_token = JWT::encode([
                     'sub' => $authToken['user_id'],
-                    'refresh'=>true
+                    'ref'=>time()
                 ],Security::salt());
                 $authToken->access_token = $access_token;
                 $authToken->refresh_token = $refresh_token;
                 $table->save($authToken);
                 echo json_encode([
-                    'status'=>'success',
+                    'success'=>true,
                     'data'=>[
                         'access_token'=>$access_token,
                         'refresh_token'=>$refresh_token
@@ -145,8 +142,8 @@ class JWT
                 ]);
             } else {
                 echo json_encode([
-                    'status'=>'failed',
-                    'messsage'=>'Session expired'
+                    'success'=>false,
+                    'refresh_token_expired'=>true
                 ]);
             }
             exit();
@@ -156,8 +153,8 @@ class JWT
             //throw new ExpiredException('Expired token');
             header('Content-Type:application/json');
             echo json_encode([
-                'status'=>'failed',
-                'expired'=>true
+                'success'=>false,
+                'access_token_expired'=>true
             ]);
             exit();
         }
